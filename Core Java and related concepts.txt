@@ -1,0 +1,1864 @@
+Core Java and related concepts in detail for your evaluation.
+
+**Core Java Important Concepts For Evaluation**
+
+This guide covers the essential topics you need to understand thoroughly.
+
+---
+
+**1. Importance of Object class and its methods (toString, equals, hashcode)**
+
+* **Importance of `Object` class:**
+    * `Object` is the root class of the Java class hierarchy. Every class in Java is a direct or indirect subclass of `Object`.
+    * It provides common behaviors and methods that all objects can use.
+    * It's crucial for polymorphism, as you can use an `Object` reference to refer to any object.
+    * Methods declared in `Object` are inherited by all classes.
+
+* **`toString()` method:**
+    * **Purpose:** Returns a string representation of the object. By default, it returns a string consisting of the class name, the at-sign (`@`), and the unsigned hexadecimal representation of the object's hash code (e.g., `MyClass@abc123`).
+    * **Importance:**
+        * Useful for debugging and logging, providing a human-readable representation of an object's state.
+        * Often overridden in custom classes to provide a more meaningful representation (e.g., displaying the values of important fields).
+    * **Example (Overriding `toString`)**:
+
+    ```java
+    class Person {
+        String name;
+        int age;
+
+        public Person(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        @Override
+        public String toString() {
+            return "Person{name='" + name + "', age=" + age + '}';
+        }
+    }
+
+    // Usage:
+    Person person = new Person("Alice", 30);
+    System.out.println(person); // Output: Person{name='Alice', age=30}
+    ```
+
+* **`equals(Object obj)` method:**
+    * **Purpose:** Indicates whether some other object is "equal to" this one. The default implementation simply checks if the object references are the same (`this == obj`).
+    * **Importance:**
+        * Crucial for determining logical equality between objects, rather than just reference equality.
+        * Used extensively in collections (like `HashSet`, `HashMap`) to check for duplicate elements or retrieve objects.
+    * **Contract (rules you *must* follow when overriding `equals`):**
+        * **Reflexive:** `x.equals(x)` must be true.
+        * **Symmetric:** If `x.equals(y)` is true, then `y.equals(x)` must be true.
+        * **Transitive:** If `x.equals(y)` is true and `y.equals(z)` is true, then `x.equals(z)` must be true.
+        * **Consistent:** Multiple invocations of `x.equals(y)` must consistently return the same result, provided the objects are not modified.
+        * For any non-null reference value `x`, `x.equals(null)` must return `false`.
+    * **Example (Overriding `equals`)**:
+
+    ```java
+    class Point {
+        int x;
+        int y;
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true; // Check for reference equality
+            if (o == null || getClass() != o.getClass()) return false; // Check for null and class type
+
+            Point point = (Point) o; // Cast to the correct type
+
+            if (x != point.x) return false;
+            return y == point.y; // Compare relevant fields
+        }
+    }
+
+    // Usage:
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(1, 2);
+    Point p3 = new Point(3, 4);
+
+    System.out.println(p1.equals(p2)); // Output: true
+    System.out.println(p1.equals(p3)); // Output: false
+    ```
+
+* **`hashCode()` method:**
+    * **Purpose:** Returns a hash code value for the object. This is an integer.
+    * **Importance:**
+        * Primarily used in hash-based collections (`HashSet`, `HashMap`, `Hashtable`) to determine the bucket where an object should be stored or retrieved.
+        * A well-distributed hash code improves the performance of these collections.
+    * **Contract (rules you *must* follow when overriding `hashCode`):**
+        * If two objects are equal according to the `equals(Object)` method, then calling the `hashCode` method on each of the two objects must produce the same integer result.
+        * If `x.equals(y)` is false, `x.hashCode()` and `y.hashCode()` are *not* required to be different (though it's desirable for performance).
+        * The hash code for an object should consistently return the same integer provided it is not modified in a way that affects `equals` comparisons.
+    * **Importance of overriding `hashCode` when overriding `equals`:** If you override `equals`, you *must* override `hashCode`. Failing to do so violates the `hashCode` contract and can lead to unexpected behavior and bugs in hash-based collections (e.g., duplicate elements in a `HashSet` that are logically equal).
+    * **Example (Overriding `hashCode` - often generated by IDEs):**
+
+    ```java
+    import java.util.Objects;
+
+    class Point {
+        int x;
+        int y;
+
+        // Constructor and equals method as above
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y); // Use Objects.hash for convenience
+            // Or manual calculation:
+            // int result = 17;
+            // result = 31 * result + x;
+            // result = 31 * result + y;
+            // return result;
+        }
+    }
+
+    // Usage with collections:
+    import java.util.HashSet;
+
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(1, 2);
+    HashSet<Point> points = new HashSet<>();
+    points.add(p1);
+    System.out.println(points.contains(p2)); // Output: true (because equals and hashCode are correctly overridden)
+    ```
+
+---
+
+**2. All the OOP concepts (inheritance, overloading, overriding, polymorphism, encapsulation, abstraction)**
+
+* **Object-Oriented Programming (OOP):** A programming paradigm based on the concept of "objects", which can contain data (fields/attributes) and code (methods/procedures). The goal is to model real-world entities and their interactions.
+
+* **Encapsulation:**
+    * **Concept:** Bundling data (fields) and the methods that operate on that data within a single unit (a class). It's about hiding the internal state of an object and requiring interaction through the object's methods.
+    * **Importance:**
+        * **Data Hiding:** Protects data from accidental modification from outside the class.
+        * **Modularity:** Makes classes independent and easier to manage.
+        * **Flexibility:** Allows changing the internal implementation of a class without affecting the code that uses it.
+    * **Implementation:** Typically achieved using access modifiers (`private`, `protected`, `public`). Private fields are accessed and modified via public getter and setter methods.
+    * **Example:**
+
+    ```java
+    class BankAccount {
+        private double balance; // Private data
+
+        public BankAccount(double initialBalance) {
+            if (initialBalance >= 0) {
+                this.balance = initialBalance;
+            } else {
+                this.balance = 0;
+            }
+        }
+
+        public double getBalance() { // Public getter method
+            return balance;
+        }
+
+        public void deposit(double amount) { // Public method to modify state
+            if (amount > 0) {
+                balance += amount;
+            }
+        }
+
+        public void withdraw(double amount) { // Public method to modify state
+            if (amount > 0 && amount <= balance) {
+                balance -= amount;
+            }
+        }
+    }
+
+    // Usage:
+    BankAccount account = new BankAccount(1000);
+    // System.out.println(account.balance); // ERROR: balance is private
+    System.out.println(account.getBalance()); // Output: 1000.0
+    account.deposit(500);
+    account.withdraw(200);
+    System.out.println(account.getBalance()); // Output: 1300.0
+    ```
+
+* **Abstraction:**
+    * **Concept:** Hiding complex implementation details and showing only the essential features of an object. It focuses on "what" an object does rather than "how" it does it.
+    * **Importance:**
+        * **Simplification:** Reduces complexity by focusing on relevant details.
+        * **Maintainability:** Makes systems easier to maintain and modify.
+        * **Flexibility:** Allows different implementations behind the same abstract interface.
+    * **Implementation:** Achieved using `abstract` classes and `interface`s.
+    * **Example (using Abstract Class):**
+
+    ```java
+    abstract class Shape { // Abstract class
+        abstract double area(); // Abstract method (no implementation)
+
+        void display() { // Concrete method
+            System.out.println("This is a shape.");
+        }
+    }
+
+    class Circle extends Shape {
+        double radius;
+
+        public Circle(double radius) {
+            this.radius = radius;
+        }
+
+        @Override
+        double area() { // Implementation of abstract method
+            return Math.PI * radius * radius;
+        }
+    }
+
+    class Rectangle extends Shape {
+        double length;
+        double width;
+
+        public Rectangle(double length, double width) {
+            this.length = length;
+            this.width = width;
+        }
+
+        @Override
+        double area() { // Implementation of abstract method
+            return length * width;
+        }
+    }
+
+    // Usage:
+    Shape circle = new Circle(5);
+    Shape rectangle = new Rectangle(4, 6);
+
+    System.out.println("Circle area: " + circle.area()); // Output: Circle area: ...
+    System.out.println("Rectangle area: " + rectangle.area()); // Output: Rectangle area: 24.0
+    circle.display(); // Output: This is a shape.
+    ```
+    * **Example (using Interface):** See the "Interface" section below.
+
+* **Inheritance:**
+    * **Concept:** A mechanism where one class (subclass/child class) inherits properties (fields and methods) from another class (superclass/parent class). This promotes code reusability.
+    * **Importance:**
+        * **Code Reusability:** Avoids writing the same code multiple times.
+        * **Maintainability:** Changes in the parent class are automatically reflected in child classes.
+        * **Hierarchical Classification:** Allows creating a hierarchy of classes representing "is-a" relationships (e.g., a Dog *is a* Animal).
+    * **Keywords:** `extends` (for classes). Java supports single inheritance (a class can only extend one other class).
+    * **Example:**
+
+    ```java
+    class Animal { // Parent class
+        void eat() {
+            System.out.println("Animal is eating.");
+        }
+    }
+
+    class Dog extends Animal { // Child class inherits from Animal
+        void bark() {
+            System.out.println("Dog is barking.");
+        }
+    }
+
+    class Cat extends Animal { // Child class inherits from Animal
+        void meow() {
+            System.out.println("Cat is meowing.");
+        }
+    }
+
+    // Usage:
+    Dog myDog = new Dog();
+    myDog.eat(); // Inherited method
+    myDog.bark(); // Dog's specific method
+
+    Cat myCat = new Cat();
+    myCat.eat(); // Inherited method
+    myCat.meow(); // Cat's specific method
+    ```
+
+* **Polymorphism:**
+    * **Concept:** The ability of an object to take on many forms. In Java, this primarily refers to the ability of a reference variable of a superclass type to refer to an object of any of its subclasses.
+    * **Importance:**
+        * **Flexibility:** Allows treating objects of different classes in a uniform way.
+        * **Extensibility:** New subclasses can be added without modifying the existing code that uses the superclass reference.
+    * **Types of Polymorphism in Java:**
+        * **Compile-time Polymorphism (Static Polymorphism):** Achieved through **method overloading**. The compiler determines which method to call based on the method signature (name and parameter list) at compile time.
+        * **Runtime Polymorphism (Dynamic Polymorphism):** Achieved through **method overriding**. The JVM determines which method to call based on the actual object type at runtime. This is the more common meaning of polymorphism in OOP discussions.
+    * **Example (Runtime Polymorphism):**
+
+    ```java
+    class Animal {
+        void makeSound() {
+            System.out.println("Animal makes a sound.");
+        }
+    }
+
+    class Dog extends Animal {
+        @Override
+        void makeSound() { // Overriding
+            System.out.println("Dog barks.");
+        }
+    }
+
+    class Cat extends Animal {
+        @Override
+        void makeSound() { // Overriding
+            System.out.println("Cat meows.");
+        }
+    }
+
+    // Usage:
+    Animal myAnimal; // Superclass reference
+
+    myAnimal = new Dog();
+    myAnimal.makeSound(); // Calls Dog's makeSound() at runtime
+
+    myAnimal = new Cat();
+    myAnimal.makeSound(); // Calls Cat's makeSound() at runtime
+
+    myAnimal = new Animal();
+    myAnimal.makeSound(); // Calls Animal's makeSound() at runtime
+    ```
+
+* **Method Overloading:**
+    * **Concept:** Defining multiple methods in the *same* class with the *same* name but different parameter lists (number of parameters, type of parameters, or order of parameters). The return type can be the same or different, but it's not sufficient on its own to overload.
+    * **Achieves:** Compile-time polymorphism.
+    * **Example:**
+
+    ```java
+    class Calculator {
+        int add(int a, int b) {
+            return a + b;
+        }
+
+        double add(double a, double b) { // Same name, different parameter types
+            return a + b;
+        }
+
+        int add(int a, int b, int c) { // Same name, different number of parameters
+            return a + b + c;
+        }
+    }
+
+    // Usage:
+    Calculator calc = new Calculator();
+    System.out.println(calc.add(2, 3));       // Calls int add(int, int)
+    System.out.println(calc.add(2.5, 3.5));   // Calls double add(double, double)
+    System.out.println(calc.add(1, 2, 3));    // Calls int add(int, int, int)
+    ```
+
+* **Method Overriding:**
+    * **Concept:** Defining a method in a *subclass* that has the *same* name, *same* parameter list, and *same* return type (or a covariant return type in Java 5+) as a method in its *superclass*. The `@Override` annotation is highly recommended to ensure you are correctly overriding.
+    * **Achieves:** Runtime polymorphism.
+    * **Rules for Overriding:**
+        * The method in the subclass must have the same signature (name and parameters) as the method in the superclass.
+        * The return type must be the same or a covariant return type (a subclass of the superclass's return type).
+        * The access modifier in the subclass cannot be more restrictive than in the superclass (e.g., if the superclass method is `protected`, the subclass method can be `protected` or `public`, but not `private`).
+        * `private`, `static`, and `final` methods cannot be overridden.
+        * Constructors cannot be overridden.
+    * **Example:** (See the Runtime Polymorphism example above)
+
+---
+
+**3. Class, Object, Interface, Abstract Class**
+
+* **Class:**
+    * **Concept:** A blueprint or template for creating objects. It defines the state (fields) and behavior (methods) that objects of that class will have.
+    * **Analogy:** Think of a cookie cutter. The cutter is the class, and the cookies you make are the objects.
+    * **Example:** `Person`, `Car`, `BankAccount`
+
+* **Object:**
+    * **Concept:** An instance of a class. A real-world entity that has state and behavior. When you create an object, memory is allocated for it.
+    * **Analogy:** The actual cookie made from the cookie cutter.
+    * **Creation:** Created using the `new` keyword followed by the class constructor (e.g., `Person person = new Person("Alice", 30);`).
+
+* **Abstract Class:**
+    * **Concept:** A class that cannot be instantiated directly. It can contain both abstract methods (methods without a body, declared with the `abstract` keyword) and concrete methods (methods with a body).
+    * **Purpose:**
+        * To provide a common base class for related subclasses, sharing some common implementation while requiring subclasses to provide their own implementations for abstract methods.
+        * Represents a partial abstraction.
+    * **Key characteristics:**
+        * Declared using the `abstract` keyword.
+        * Can have abstract methods (no body) and concrete methods (with body).
+        * Can have instance variables and constructors.
+        * Cannot be instantiated (`new AbstractClass()` is not allowed).
+        * Subclasses must provide implementations for all abstract methods (unless the subclass is also abstract).
+        * Can contain `final` and `static` methods.
+        * Can contain constructors.
+    * **Example:** (See the Abstraction example using `Shape` above)
+
+* **Interface:**
+    * **Concept:** A contract that defines a set of methods that a class must implement. It specifies "what" a class should do, but not "how" it should do it. Before Java 8, interfaces could only contain abstract methods (implicitly public and abstract) and public static final variables.
+    * **Purpose:**
+        * To achieve full abstraction.
+        * To support multiple inheritance of *type* (a class can implement multiple interfaces).
+        * To define a common behavior for unrelated classes.
+    * **Key characteristics:**
+        * Declared using the `interface` keyword.
+        * Before Java 8, contained only abstract methods (implicitly `public abstract`) and constants (implicitly `public static final`).
+        * From Java 8 onwards, can also contain `default` and `static` methods with implementations.
+        * From Java 9 onwards, can contain `private` methods.
+        * Cannot have instance variables (only constants).
+        * Cannot have constructors.
+        * Classes use the `implements` keyword to implement an interface.
+        * An interface can extend multiple other interfaces.
+    * **Example (Pre-Java 8):**
+
+    ```java
+    interface Drawable { // Interface
+        void draw(); // Abstract method (implicitly public abstract)
+        // int x = 10; // This would be public static final
+    }
+
+    class Circle implements Drawable { // Implements the interface
+        @Override
+        public void draw() { // Must provide implementation
+            System.out.println("Drawing a Circle.");
+        }
+    }
+
+    class Square implements Drawable { // Implements the interface
+        @Override
+        public void draw() { // Must provide implementation
+            System.out.println("Drawing a Square.");
+        }
+    }
+
+    // Usage:
+    Drawable d1 = new Circle();
+    Drawable d2 = new Square();
+    d1.draw(); // Calls Circle's draw()
+    d2.draw(); // Calls Square's draw()
+    ```
+    * **Example (Java 8+ with default method):**
+
+    ```java
+    interface Swimmable {
+        void swim(); // Abstract method
+
+        default void dive() { // Default method with implementation
+            System.out.println("Diving into the water.");
+        }
+    }
+
+    class Human implements Swimmable {
+        @Override
+        public void swim() {
+            System.out.println("Human is swimming.");
+        }
+        // dive() is inherited and can be used or overridden
+    }
+
+    class Fish implements Swimmable {
+        @Override
+        public void swim() {
+            System.out.println("Fish is swimming.");
+        }
+
+        // Fish doesn't need to dive the same way
+        @Override
+        public void dive() {
+            System.out.println("Fish goes deeper.");
+        }
+    }
+
+    // Usage:
+    Swimmable h = new Human();
+    Swimmable f = new Fish();
+
+    h.swim(); // Human is swimming.
+    h.dive(); // Diving into the water.
+
+    f.swim(); // Fish is swimming.
+    f.dive(); // Fish goes deeper.
+    ```
+
+* **Differences between Abstract Class and Interface:**
+
+    | Feature          | Abstract Class                         | Interface                                    |
+    | :--------------- | :------------------------------------- | :------------------------------------------- |
+    | **Type** | Class                                  | Blueprint/Contract                           |
+    | **Instantiation**| Cannot be instantiated                 | Cannot be instantiated                       |
+    | **Methods** | Can have abstract and concrete methods | Before Java 8: Only abstract methods. From Java 8: Abstract, default, static methods. From Java 9: Private methods. |
+    | **Variables** | Can have instance variables, static variables, final variables | Only constants (public static final, implicitly) |
+    | **Constructors** | Can have constructors                  | Cannot have constructors                     |
+    | **Inheritance** | A class can extend only one abstract class (single inheritance) | A class can implement multiple interfaces (multiple inheritance of type) |
+    | **Keywords** | `abstract`, `extends`                  | `interface`, `implements`, `extends` (for interfaces extending interfaces) |
+    | **Purpose** | Defines a common base with some shared implementation | Defines a contract for behavior, achieving full abstraction and supporting multiple inheritance of type |
+
+---
+
+**4. String, StringBuffer, StringBuilder**
+
+All three classes are used to represent sequences of characters in Java, but they differ significantly in their mutability and thread safety.
+
+* **`String`:**
+    * **Mutability:** Immutable. Once a `String` object is created, its value cannot be changed. Any operation that appears to modify a `String` (like concatenation) actually creates a *new* `String` object.
+    * **Thread Safety:** Thread-safe because it is immutable. Multiple threads can safely access a `String` object concurrently without issues.
+    * **Performance:** Generally performs well for simple string operations or when the string is not changed frequently. Repeated modifications can be inefficient as they create many intermediate `String` objects.
+    * **Usage:** Suitable for representing fixed text or when thread safety is required and the string doesn't change often.
+    * **Example:**
+
+    ```java
+    String s1 = "Hello";
+    String s2 = s1 + " World"; // Creates a new String object for "Hello World"
+    System.out.println(s1); // Output: Hello (s1 remains unchanged)
+    System.out.println(s2); // Output: Hello World
+    ```
+
+* **`StringBuffer`:**
+    * **Mutability:** Mutable. Its value can be changed after creation.
+    * **Thread Safety:** Thread-safe. Its methods are synchronized, making it suitable for use in a multi-threaded environment where multiple threads might modify the same `StringBuffer` object.
+    * **Performance:** Slower than `StringBuilder` due to the overhead of synchronization.
+    * **Usage:** Use when you need to perform frequent modifications to a string and thread safety is a requirement.
+    * **Example:**
+
+    ```java
+    StringBuffer sb = new StringBuffer("Hello");
+    sb.append(" World"); // Modifies the existing StringBuffer object
+    System.out.println(sb); // Output: Hello World
+    ```
+
+* **`StringBuilder`:**
+    * **Mutability:** Mutable. Its value can be changed after creation.
+    * **Thread Safety:** Not thread-safe. Its methods are not synchronized.
+    * **Performance:** Faster than `StringBuffer` because it doesn't have the overhead of synchronization.
+    * **Usage:** Use when you need to perform frequent modifications to a string in a single-threaded environment or when thread safety is handled externally. This is the preferred choice for most string manipulation within a single thread.
+    * **Example:**
+
+    ```java
+    StringBuilder sbuilder = new StringBuilder("Hello");
+    sbuilder.append(" World"); // Modifies the existing StringBuilder object
+    System.out.println(sbuilder); // Output: Hello World
+    ```
+
+* **Differences Summary:**
+
+    | Feature          | String         | StringBuffer     | StringBuilder      |
+    | :--------------- | :------------- | :--------------- | :----------------- |
+    | **Mutability** | Immutable      | Mutable          | Mutable            |
+    | **Thread Safety**| Thread-safe    | Thread-safe      | Not thread-safe    |
+    | **Performance** | Good for read-only, poor for modifications | Slower than StringBuilder | Faster than StringBuffer |
+    | **Usage** | Fixed text, thread-safe read operations | Frequent modifications, multi-threaded environment | Frequent modifications, single-threaded environment |
+
+---
+
+**5. Exception Handling**
+
+* **Concept:** A mechanism to handle runtime errors (exceptions) that disrupt the normal flow of a program. It allows you to gracefully handle unexpected situations and prevent the program from crashing.
+* **Importance:**
+    * **Robustness:** Makes programs more resilient to errors.
+    * **Graceful Degradation:** Allows the program to continue execution in a controlled manner even when errors occur.
+    * **Separation of Concerns:** Separates the error-handling code from the normal program logic.
+
+* **Exception Hierarchy:**
+    * `Throwable`: The root of the exception hierarchy.
+        * `Error`: Represents serious problems that application should not try to catch (e.g., `OutOfMemoryError`, `StackOverflowError`). These are typically unrecoverable.
+        * `Exception`: Represents conditions that a reasonable application might want to catch.
+            * `RuntimeException` (Unchecked Exceptions): Exceptions that the compiler does not force you to handle (e.g., `NullPointerException`, `ArrayIndexOutOfBoundsException`). These often indicate programming errors.
+            * Checked Exceptions: Exceptions that the compiler forces you to handle (e.g., `IOException`, `FileNotFoundException`, `SQLException`). You must either catch them using `try-catch` or declare that your method throws them using the `throws` keyword.
+
+* **Keywords:**
+    * `try`: Contains the code that might throw an exception.
+    * `catch`: Catches and handles a specific type of exception. You can have multiple `catch` blocks for different exception types.
+    * `finally`: Contains code that will execute regardless of whether an exception occurred or was caught. Useful for cleanup operations (like closing resources).
+    * `throw`: Used to explicitly throw an exception.
+    * `throws`: Used in a method signature to declare that a method might throw a checked exception.
+
+* **Handling Exceptions (`try-catch-finally`):**
+
+    ```java
+    try {
+        // Code that might throw an exception
+        int result = 10 / 0; // ArithmeticException (RuntimeException - unchecked)
+        System.out.println(result);
+    } catch (ArithmeticException e) {
+        // Handle the exception
+        System.err.println("Error: Cannot divide by zero.");
+        e.printStackTrace(); // Print the stack trace for debugging
+    } catch (NullPointerException e) {
+        // Handle other types of exceptions
+        System.err.println("Error: Null pointer encountered.");
+    } finally {
+        // Code that always executes
+        System.out.println("This block always runs.");
+    }
+    ```
+
+* **Throwing Exceptions (`throw`):**
+
+    ```java
+    class InvalidAgeException extends Exception { // Custom checked exception
+        public InvalidAgeException(String message) {
+            super(message);
+        }
+    }
+
+    class Person {
+        int age;
+
+        public void setAge(int age) throws InvalidAgeException { // Declaring checked exception
+            if (age < 0) {
+                throw new InvalidAgeException("Age cannot be negative."); // Throwing custom exception
+            }
+            this.age = age;
+        }
+    }
+
+    // Usage:
+    Person p = new Person();
+    try {
+        p.setAge(-5);
+    } catch (InvalidAgeException e) {
+        System.err.println("Caught exception: " + e.getMessage()); // Output: Caught exception: Age cannot be negative.
+    }
+    ```
+
+* **Declaring Exceptions (`throws`):** Used in the method signature to indicate that the method *might* throw a checked exception. This forces the calling code to handle the exception.
+
+    ```java
+    import java.io.FileReader;
+    import java.io.IOException;
+
+    class FileHandler {
+        public void readFile(String filename) throws IOException { // Declaring IOException
+            FileReader reader = new FileReader(filename);
+            // ... read from the file
+            reader.close();
+        }
+    }
+
+    // Usage:
+    FileHandler handler = new FileHandler();
+    try {
+        handler.readFile("non_existent_file.txt");
+    } catch (IOException e) {
+        System.err.println("Error reading file: " + e.getMessage());
+    }
+    ```
+
+* **Custom Exceptions:** You can create your own exception classes by extending `Exception` (for checked exceptions) or `RuntimeException` (for unchecked exceptions). This allows you to define specific types of errors relevant to your application.
+
+---
+
+**6. Multi-Threading (thread creation, thread life cycle, synchronization, inter-thread communication (wait, notify, notifyAll))**
+
+* **Concept:** The ability of a program to execute multiple parts (threads) concurrently. Each thread runs independently within the same process, sharing the process's resources.
+* **Importance:**
+    * **Improved Performance:** Can utilize multiple CPU cores, making programs faster.
+    * **Responsiveness:** Prevents the UI from freezing during long-running tasks.
+    * **Better Resource Utilization:** Allows tasks to continue while waiting for I/O operations.
+
+* **Thread Creation:**
+    * **Method 1: Extending the `Thread` class:**
+        * Create a class that extends `Thread`.
+        * Override the `run()` method, which contains the code the thread will execute.
+        * Create an instance of the class and call its `start()` method (calling `run()` directly will execute it in the current thread, not a new thread).
+
+    ```java
+    class MyThread extends Thread {
+        @Override
+        public void run() {
+            System.out.println("Thread " + Thread.currentThread().getId() + " is running.");
+        }
+    }
+
+    // Usage:
+    MyThread thread1 = new MyThread();
+    thread1.start(); // Starts a new thread, which executes the run() method
+    ```
+    * **Method 2: Implementing the `Runnable` interface:**
+        * Create a class that implements `Runnable`.
+        * Implement the `run()` method.
+        * Create a `Thread` object, passing an instance of your `Runnable` implementation to its constructor.
+        * Call the `start()` method on the `Thread` object. This is the preferred method as it allows your class to extend other classes.
+
+    ```java
+    class MyRunnable implements Runnable {
+        @Override
+        public void run() {
+            System.out.println("Thread " + Thread.currentThread().getId() + " is running (Runnable).");
+        }
+    }
+
+    // Usage:
+    MyRunnable myRunnable = new MyRunnable();
+    Thread thread2 = new Thread(myRunnable);
+    thread2.start(); // Starts a new thread
+    ```
+
+* **Thread Life Cycle:** A thread goes through different stages from its creation to its termination.
+    * **New:** The thread has been created but has not yet started.
+    * **Runnable:** The thread is ready to run and is waiting for CPU time. It might be running or waiting in the run queue.
+    * **Running:** The thread is currently executing on the CPU.
+    * **Blocked/Waiting:** The thread is temporarily inactive and is waiting for some event to occur (e.g., waiting for I/O, waiting for a lock, waiting for another thread to finish).
+    * **Timed Waiting:** The thread is waiting for a specified amount of time (e.g., using `Thread.sleep()`, `Object.wait(long)`).
+    * **Terminated:** The thread has finished its execution.
+
+* **Synchronization:**
+    * **Concept:** A mechanism to control access to shared resources by multiple threads to prevent data inconsistency and race conditions.
+    * **Importance:** Ensures that only one thread can access a critical section of code (a block of code that accesses a shared resource) at a time.
+    * **Keywords/Mechanisms:**
+        * **`synchronized` keyword:**
+            * **Synchronized Methods:** Declaring a method as `synchronized` means that only one thread can execute this method on a given object instance at a time. The lock is on the object itself.
+            * **Synchronized Blocks:** Allows synchronizing a specific block of code rather than the entire method. This is useful when you only need to protect a small portion of the method. You must specify the object that will be used as the lock.
+
+    ```java
+    class Counter {
+        private int count = 0;
+
+        // Synchronized method
+        public synchronized void increment() {
+            count++;
+        }
+
+        // Synchronized block
+        public void decrement() {
+            synchronized (this) { // Synchronizing on the current object
+                count--;
+            }
+        }
+
+        public int getCount() {
+            return count;
+        }
+    }
+    ```
+        * **Locks (from `java.util.concurrent.locks`):** More flexible and powerful than the `synchronized` keyword. Provide more control over locking mechanisms (e.g., reentrant locks, read/write locks).
+
+* **Inter-Thread Communication (wait, notify, notifyAll):**
+    * **Concept:** Mechanisms used by threads to communicate with each other regarding the state of a shared resource. This is typically done within synchronized blocks or methods.
+    * **Methods (defined in the `Object` class and used with synchronized blocks/methods):**
+        * `wait()`: Causes the current thread to wait until another thread invokes the `notify()` or `notifyAll()` method for this object. The thread releases the lock on the object and goes into a waiting state.
+        * `notify()`: Wakes up a *single* thread that is waiting on this object's monitor (lock). If multiple threads are waiting, one is chosen arbitrarily.
+        * `notifyAll()`: Wakes up *all* threads that are waiting on this object's monitor.
+
+    * **Producer-Consumer Problem Example (Illustrating `wait()` and `notify()`):**
+
+    ```java
+    import java.util.LinkedList;
+    import java.util.Queue;
+
+    class ProducerConsumer {
+        private Queue<Integer> buffer = new LinkedList<>();
+        private int capacity = 5;
+
+        public void produce() throws InterruptedException {
+            int value = 0;
+            while (true) {
+                synchronized (this) {
+                    while (buffer.size() == capacity) {
+                        System.out.println("Buffer is full. Producer waiting...");
+                        wait(); // Producer waits if buffer is full
+                    }
+                    buffer.add(value);
+                    System.out.println("Produced: " + value);
+                    value++;
+                    notify(); // Notify consumer that an item is available
+                    Thread.sleep(1000); // Simulate production time
+                }
+            }
+        }
+
+        public void consume() throws InterruptedException {
+            while (true) {
+                synchronized (this) {
+                    while (buffer.isEmpty()) {
+                        System.out.println("Buffer is empty. Consumer waiting...");
+                        wait(); // Consumer waits if buffer is empty
+                    }
+                    int value = buffer.poll();
+                    System.out.println("Consumed: " + value);
+                    notify(); // Notify producer that space is available
+                    Thread.sleep(1000); // Simulate consumption time
+                }
+            }
+        }
+    }
+
+    // Usage (in a separate class or main method):
+    // ProducerConsumer pc = new ProducerConsumer();
+    //
+    // Thread producerThread = new Thread(() -> {
+    //     try {
+    //         pc.produce();
+    //     } catch (InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
+    // });
+    //
+    // Thread consumerThread = new Thread(() -> {
+    //     try {
+    //         pc.consume();
+    //     } catch (InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
+    // });
+    //
+    // producerThread.start();
+    // consumerThread.start();
+    ```
+
+---
+
+**7. Collections (LIST, SET, MAP, Concurrent collections (basic idea enough))**
+
+* **Concept:** The Java Collections Framework (JCF) is a set of classes and interfaces that provide a unified architecture for representing and manipulating collections of objects. It offers various data structures to store and manage groups of objects efficiently.
+* **Importance:** Provides pre-built, optimized data structures, reducing the need to implement them from scratch. Offers a consistent API for working with different types of collections.
+
+* **Core Interfaces:**
+    * `Collection`: The root interface for all collection classes. Defines basic operations like `add()`, `remove()`, `size()`, `isEmpty()`, `contains()`.
+        * `List`: An ordered collection (also known as a sequence). Elements have an index and can be accessed by their index. Allows duplicate elements.
+            * **Implementations:** `ArrayList` (resizable array), `LinkedList` (doubly linked list), `Vector` (thread-safe, legacy).
+            * **Characteristics:** Maintains insertion order, allows duplicates, index-based access.
+            * **Use Cases:** When you need ordered elements, frequent access by index, or allow duplicates.
+            * **Example (ArrayList):**
+
+            ```java
+            import java.util.ArrayList;
+            import java.util.List;
+
+            List<String> names = new ArrayList<>();
+            names.add("Alice");
+            names.add("Bob");
+            names.add("Alice"); // Duplicates allowed
+            System.out.println(names); // Output: [Alice, Bob, Alice]
+            System.out.println(names.get(1)); // Output: Bob
+            ```
+
+        * `Set`: A collection that does not contain duplicate elements. The order of elements is generally not guaranteed (except for `LinkedHashSet`).
+            * **Implementations:** `HashSet` (uses a hash table, fastest for basic operations), `LinkedHashSet` (maintains insertion order), `TreeSet` (sorted order).
+            * **Characteristics:** No duplicates. `HashSet` unordered, `LinkedHashSet` maintains insertion order, `TreeSet` maintains sorted order.
+            * **Use Cases:** When you need to store unique elements or perform set operations (union, intersection).
+            * **Example (HashSet):**
+
+            ```java
+            import java.util.HashSet;
+            import java.util.Set;
+
+            Set<Integer> numbers = new HashSet<>();
+            numbers.add(10);
+            numbers.add(20);
+            numbers.add(10); // Duplicate ignored
+            System.out.println(numbers); // Output: [20, 10] (order may vary)
+            System.out.println(numbers.contains(20)); // Output: true
+            ```
+
+        * `Queue`: A collection designed for holding elements prior to processing. Typically operates in a FIFO (First-In, First-Out) manner.
+            * **Implementations:** `LinkedList`, `PriorityQueue`, `ArrayDeque`.
+            * **Characteristics:** Defines methods for adding (`offer`), removing (`poll`), and inspecting (`peek`) elements from the head of the queue.
+
+    * `Map`: An object that maps keys to values. Keys are unique, but values can be duplicated.
+        * **Implementations:** `HashMap` (uses a hash table, fastest, unordered), `LinkedHashMap` (maintains insertion order), `TreeMap` (sorted by keys).
+        * **Characteristics:** Stores key-value pairs, unique keys.
+        * **Use Cases:** When you need to store data as key-value pairs and retrieve values based on their keys.
+        * **Example (HashMap):**
+
+        ```java
+        import java.util.HashMap;
+        import java.util.Map;
+
+        Map<String, String> capitals = new HashMap<>();
+        capitals.put("USA", "Washington D.C.");
+        capitals.put("India", "New Delhi");
+        capitals.put("UK", "London");
+        System.out.println(capitals); // Output: {UK=London, USA=Washington D.C., India=New Delhi} (order may vary)
+        System.out.println(capitals.get("India")); // Output: New Delhi
+        System.out.println(capitals.containsKey("USA")); // Output: true
+        System.out.println(capitals.containsValue("London")); // Output: true
+        ```
+
+* **Concurrent Collections (Basic Idea):**
+    * **Concept:** Collections designed for use in multi-threaded environments. They provide thread-safe operations without requiring external synchronization (like using `synchronized` blocks).
+    * **Importance:** Avoids the need for manual synchronization, which can be error-prone and lead to performance bottlenecks.
+    * **Examples:**
+        * `ConcurrentHashMap`: A thread-safe version of `HashMap` that offers better scalability than a synchronized `HashMap`.
+        * `CopyOnWriteArrayList`: A thread-safe version of `ArrayList` where all mutative operations (add, set, remove, etc.) create a fresh copy of the underlying array. Useful when reads are frequent and writes are infrequent.
+        * `ConcurrentLinkedQueue`: A thread-safe unbounded queue.
+        * `BlockingQueue`: Interfaces that support operations that wait for the queue to become non-empty when retrieving an element or wait for space to become available in the queue when storing an element. Useful for producer-consumer scenarios.
+
+---
+
+**8. Java 8 Features (lambda, FI, default and static methods, stream api, date and time api, :: operator)**
+
+Java 8 introduced significant features that changed how we write Java code, especially with functional programming concepts.
+
+* **Lambda Expressions:**
+    * **Concept:** A concise way to represent an anonymous function. They are used to provide implementations for functional interfaces.
+    * **Syntax:** `(parameters) -> expression` or `(parameters) -> { statements; }`
+    * **Importance:** Enables functional programming in Java, makes code more readable and concise, especially when working with collections and APIs like the Stream API.
+    * **Example:**
+
+    ```java
+    // Before Java 8 (Anonymous Inner Class)
+    // new Thread(new Runnable() {
+    //     @Override
+    //     public void run() {
+    //         System.out.println("Running in a thread.");
+    //     }
+    // }).start();
+
+    // With Lambda Expression
+    new Thread(() -> System.out.println("Running in a thread with lambda.")).start();
+
+    // Using lambda with a list
+    List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+    names.forEach(name -> System.out.println("Hello, " + name));
+    ```
+
+* **Functional Interfaces (FI):**
+    * **Concept:** An interface that contains exactly one abstract method. They are marked with the `@FunctionalInterface` annotation (optional but recommended).
+    * **Importance:** Provide a target type for lambda expressions and method references. The Java API includes many built-in functional interfaces (e.g., `Predicate`, `Consumer`, `Supplier`, `Function`).
+    * **Example:**
+
+    ```java
+    @FunctionalInterface
+    interface Greeting {
+        void sayHello(String name);
+    }
+
+    // Using the functional interface with a lambda
+    Greeting greeting = name -> System.out.println("Hello, " + name);
+    greeting.sayHello("World");
+    ```
+
+* **Default and Static Methods in Interfaces:**
+    * **Concept:**
+        * **Default Methods:** Methods in an interface with the `default` keyword and a body. They provide a default implementation for methods. Implementing classes are not required to implement default methods, but they can override them.
+        * **Static Methods:** Methods in an interface with the `static` keyword and a body. They belong to the interface itself and can be called directly on the interface name.
+    * **Importance:**
+        * **Default Methods:** Allows adding new methods to existing interfaces without breaking the classes that implement them (backward compatibility). Enables evolving interfaces.
+        * **Static Methods:** Provide utility methods related to the interface without requiring an implementing class instance.
+    * **Example:** (See the Interface example with `Swimmable` above for default methods)
+
+    ```java
+    interface MyInterface {
+        static void staticMethod() {
+            System.out.println("Static method in interface.");
+        }
+
+        default void defaultMethod() {
+            System.out.println("Default method in interface.");
+        }
+    }
+
+    // Usage:
+    MyInterface.staticMethod(); // Call static method directly on the interface
+
+    class MyClass implements MyInterface {
+        // No need to implement defaultMethod(), it's inherited
+    }
+
+    MyClass obj = new MyClass();
+    obj.defaultMethod(); // Call the default method
+    ```
+
+* **Stream API:**
+    * **Concept:** A sequence of elements that supports sequential and parallel aggregate operations. It allows for processing collections in a functional and declarative style.
+    * **Importance:** Provides a powerful and efficient way to perform operations like filtering, mapping, reducing, and collecting on collections. Supports parallel processing easily.
+    * **Key Operations:**
+        * **Intermediate Operations:** Return a new stream (e.g., `filter()`, `map()`, `sorted()`, `distinct()`). They are lazy and are executed only when a terminal operation is called.
+        * **Terminal Operations:** Produce a result or a side effect (e.g., `forEach()`, `collect()`, `reduce()`, `count()`, `sum()`, `min()`, `max()`). They trigger the execution of the intermediate operations.
+    * **Example:**
+
+    ```java
+    import java.util.Arrays;
+    import java.util.List;
+    import java.util.stream.Collectors;
+
+    List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+    // Filter even numbers and collect them into a new list
+    List<Integer> evenNumbers = numbers.stream() // Create a stream
+                                       .filter(n -> n % 2 == 0) // Intermediate operation (filter)
+                                       .collect(Collectors.toList()); // Terminal operation (collect)
+    System.out.println(evenNumbers); // Output: [2, 4, 6, 8, 10]
+
+    // Square each number and find the sum
+    int sumOfSquares = numbers.stream()
+                             .map(n -> n * n) // Intermediate operation (map)
+                             .reduce(0, (a, b) -> a + b); // Terminal operation (reduce)
+    System.out.println(sumOfSquares); // Output: 385
+    ```
+
+* **Date and Time API (java.time package):**
+    * **Concept:** A completely new and improved API for handling dates, times, durations, and time zones. It replaces the older, often problematic `java.util.Date` and `java.util.Calendar` classes.
+    * **Importance:** Provides a more intuitive, immutable, and thread-safe way to work with date and time. Fixes many issues with the old API (e.g., mutability, poor design).
+    * **Key Classes:** `LocalDate`, `LocalTime`, `LocalDateTime`, `ZonedDateTime`, `Duration`, `Period`, `Instant`, `DateTimeFormatter`.
+    * **Example:**
+
+    ```java
+    import java.time.LocalDate;
+    import java.time.LocalDateTime;
+    import java.time.LocalTime;
+    import java.time.ZonedDateTime;
+    import java.time.format.DateTimeFormatter;
+
+    // Current date
+    LocalDate today = LocalDate.now();
+    System.out.println("Today's date: " + today);
+
+    // Current time
+    LocalTime currentTime = LocalTime.now();
+    System.out.println("Current time: " + currentTime);
+
+    // Current date and time
+    LocalDateTime currentDateTime = LocalDateTime.now();
+    System.out.println("Current date and time: " + currentDateTime);
+
+    // Specific date
+    LocalDate birthday = LocalDate.of(1990, 5, 15);
+    System.out.println("My birthday: " + birthday);
+
+    // Formatting
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    String formattedDateTime = currentDateTime.format(formatter);
+    System.out.println("Formatted date and time: " + formattedDateTime);
+
+    // Zoned Date and Time
+    ZonedDateTime nowWithZone = ZonedDateTime.now();
+    System.out.println("Current date and time with zone: " + nowWithZone);
+    ```
+
+* **Method References (`::` operator):**
+    * **Concept:** A shorthand syntax for lambda expressions that simply call an existing method. It provides a way to refer to a method without executing it.
+    * **Types:**
+        * Reference to a static method: `ClassName::staticMethodName`
+        * Reference to an instance method of a particular object: `objectInstance::instanceMethodName`
+        * Reference to an instance method of an arbitrary object of a particular type: `ClassName::instanceMethodName`
+        * Reference to a constructor: `ClassName::new`
+    * **Importance:** Makes code more concise and readable when the lambda expression just calls an existing method.
+    * **Example:**
+
+    ```java
+    import java.util.Arrays;
+    import java.util.List;
+    import java.util.function.Consumer;
+
+    List<String> names = Arrays.asList("Alice", "Bob", "Charlie");
+
+    // Using lambda expression
+    names.forEach(name -> System.out.println(name));
+
+    // Using method reference (equivalent to the lambda above)
+    names.forEach(System.out::println); // Reference to an instance method of a particular object (System.out)
+
+    // Example of reference to a static method
+    List<Integer> numbers = Arrays.asList(5, 2, 8, 1);
+    numbers.sort(Integer::compare); // Reference to a static method (Integer.compare)
+    System.out.println(numbers); // Output: [1, 2, 5, 8]
+
+    // Example of reference to a constructor
+    // Instead of:
+    // List<String> list = names.stream().map(name -> new String(name)).collect(Collectors.toList());
+    // Use:
+    List<String> list = names.stream().map(String::new).collect(Collectors.toList()); // Reference to a constructor
+    ```
+
+---
+
+**9. MySQL Queries (all basic queries and joins, subqueries, sequence)**
+
+This section covers fundamental SQL concepts using MySQL syntax.
+
+* **Basic Queries:**
+    * **Selecting all columns from a table:**
+        ```sql
+        SELECT * FROM table_name;
+        ```
+    * **Selecting specific columns:**
+        ```sql
+        SELECT column1, column2 FROM table_name;
+        ```
+    * **Selecting distinct values:**
+        ```sql
+        SELECT DISTINCT column_name FROM table_name;
+        ```
+    * **Filtering rows with `WHERE` clause:**
+        ```sql
+        SELECT * FROM table_name WHERE column_name = 'value';
+        SELECT * FROM products WHERE price > 100;
+        ```
+    * **Sorting results with `ORDER BY`:**
+        ```sql
+        SELECT * FROM table_name ORDER BY column_name ASC;  -- Ascending (default)
+        SELECT * FROM table_name ORDER BY column_name DESC; -- Descending
+        SELECT * FROM table_name ORDER BY column1 ASC, column2 DESC; -- Multiple columns
+        ```
+    * **Limiting results with `LIMIT`:**
+        ```sql
+        SELECT * FROM table_name LIMIT 10; -- Get the first 10 rows
+        SELECT * FROM table_name LIMIT 5, 10; -- Get 10 rows starting from the 6th row (offset 5)
+        ```
+    * **Inserting data:**
+        ```sql
+        INSERT INTO table_name (column1, column2) VALUES ('value1', 'value2');
+        INSERT INTO table_name VALUES ('value1', 'value2', 'value3'); -- Assuming order matches columns
+        ```
+    * **Updating data:**
+        ```sql
+        UPDATE table_name SET column1 = 'new_value' WHERE some_column = 'some_value';
+        UPDATE products SET price = price * 1.10 WHERE category = 'Electronics'; -- Update multiple rows
+        ```
+    * **Deleting data:**
+        ```sql
+        DELETE FROM table_name WHERE some_column = 'some_value';
+        DELETE FROM orders WHERE order_date < '2023-01-01'; -- Delete multiple rows
+        DELETE FROM table_name; -- Delete all rows (be careful!)
+        ```
+    * **Aggregate Functions (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`):**
+        ```sql
+        SELECT COUNT(*) FROM table_name; -- Count all rows
+        SELECT COUNT(column_name) FROM table_name; -- Count non-null values in a column
+        SELECT SUM(price) FROM products WHERE category = 'Electronics';
+        SELECT AVG(age) FROM users;
+        SELECT MIN(salary) FROM employees;
+        SELECT MAX(order_total) FROM orders;
+        ```
+    * **Grouping results with `GROUP BY`:**
+        ```sql
+        SELECT category, COUNT(*) FROM products GROUP BY category; -- Count products per category
+        SELECT customer_id, SUM(order_total) FROM orders GROUP BY customer_id HAVING SUM(order_total) > 1000; -- Filter groups with HAVING
+        ```
+
+* **Joins:** Combine rows from two or more tables based on a related column between them.
+    * **`INNER JOIN`:** Returns only the rows where the join condition is met in both tables.
+        ```sql
+        SELECT columns
+        FROM table1
+        INNER JOIN table2 ON table1.column = table2.column;
+
+        -- Example: Get order details with customer names
+        SELECT o.order_id, c.customer_name, o.order_date
+        FROM orders o
+        INNER JOIN customers c ON o.customer_id = c.customer_id;
+        ```
+    * **`LEFT JOIN` (or `LEFT OUTER JOIN`):** Returns all rows from the left table and the matched rows from the right table. If there's no match in the right table, `NULL` values are returned for the right table's columns.
+        ```sql
+        SELECT columns
+        FROM table1
+        LEFT JOIN table2 ON table1.column = table2.column;
+
+        -- Example: Get all customers and their order IDs (if they have any)
+        SELECT c.customer_name, o.order_id
+        FROM customers c
+        LEFT JOIN orders o ON c.customer_id = o.customer_id;
+        ```
+    * **`RIGHT JOIN` (or `RIGHT OUTER JOIN`):** Returns all rows from the right table and the matched rows from the left table. If there's no match in the left table, `NULL` values are returned for the left table's columns.
+        ```sql
+        SELECT columns
+        FROM table1
+        RIGHT JOIN table2 ON table1.column = table2.column;
+
+        -- Example: Get all orders and the customer names (if the customer exists)
+        SELECT c.customer_name, o.order_id
+        FROM customers c
+        RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+        ```
+    * **`FULL OUTER JOIN`:** Returns all rows when there is a match in either the left or the right table. If there's no match, `NULL` values are returned for the columns of the non-matching side. (Note: MySQL doesn't directly support `FULL OUTER JOIN`, you can achieve it using `LEFT JOIN` UNION `RIGHT JOIN`).
+        ```sql
+        -- Emulating FULL OUTER JOIN in MySQL
+        SELECT columns
+        FROM table1
+        LEFT JOIN table2 ON table1.column = table2.column
+        UNION
+        SELECT columns
+        FROM table1
+        RIGHT JOIN table2 ON table1.column = table2.column
+        WHERE table1.column IS NULL; -- Exclude duplicates from the LEFT JOIN part
+        ```
+    * **`CROSS JOIN`:** Returns the Cartesian product of the two tables (every row from the first table is combined with every row from the second table). Be cautious with large tables.
+        ```sql
+        SELECT * FROM table1 CROSS JOIN table2;
+        ```
+    * **`SELF JOIN`:** Joining a table with itself. Useful for comparing rows within the same table. Requires using aliases.
+        ```sql
+        SELECT a.column1, b.column2
+        FROM table_name a, table_name b
+        WHERE a.some_column = b.another_column;
+
+        -- Example: Find employees who work in the same department
+        SELECT e1.employee_name, e2.employee_name, e1.department_id
+        FROM employees e1, employees e2
+        WHERE e1.department_id = e2.department_id AND e1.employee_id <> e2.employee_id;
+        ```
+
+* **Subqueries (Nested Queries):**
+    * **Concept:** A query nested inside another query. The inner query (subquery) executes first, and its result is used by the outer query.
+    * **Types:**
+        * **Scalar Subquery:** Returns a single value (one row, one column). Can be used in the `SELECT`, `WHERE`, or `HAVING` clause.
+        * **Row Subquery:** Returns a single row but potentially multiple columns. Can be used in the `WHERE` clause.
+        * **Table Subquery:** Returns one or more rows and one or more columns. Can be used in the `FROM` clause (derived table) or with operators like `IN`, `EXISTS`.
+    * **Examples:**
+        * **Scalar Subquery in `WHERE`:** Find products with a price greater than the average price.
+            ```sql
+            SELECT *
+            FROM products
+            WHERE price > (SELECT AVG(price) FROM products);
+            ```
+        * **Table Subquery in `FROM` (Derived Table):** Get the total number of orders for each customer and filter those with more than 5 orders.
+            ```sql
+            SELECT customer_id, total_orders
+            FROM (
+                SELECT customer_id, COUNT(*) AS total_orders
+                FROM orders
+                GROUP BY customer_id
+            ) AS CustomerOrderCounts
+            WHERE total_orders > 5;
+            ```
+        * **Subquery with `IN`:** Find customers who have placed orders.
+            ```sql
+            SELECT *
+            FROM customers
+            WHERE customer_id IN (SELECT DISTINCT customer_id FROM orders);
+            ```
+        * **Subquery with `EXISTS`:** Similar to `IN`, often more efficient for large subquery results.
+            ```sql
+            SELECT *
+            FROM customers c
+            WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id);
+            ```
+
+* **Sequence:**
+    * **Concept:** A database object that automatically generates unique sequential numbers. Often used to generate primary key values.
+    * **In MySQL:** MySQL doesn't have a built-in `SEQUENCE` object like some other databases (e.g., Oracle, PostgreSQL). You typically use the `AUTO_INCREMENT` attribute for a column (usually the primary key) to achieve similar functionality.
+    * **Example (using `AUTO_INCREMENT`):**
+
+    ```sql
+    CREATE TABLE users (
+        user_id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) NOT NULL,
+        email VARCHAR(100) UNIQUE
+    );
+
+    -- When you insert a new row, you don't provide a value for user_id:
+    INSERT INTO users (username, email) VALUES ('alice', 'alice@example.com');
+    INSERT INTO users (username, email) VALUES ('bob', 'bob@example.com');
+
+    -- MySQL automatically assigns unique, incrementing values to user_id.
+    ```
+
+---
+
+**10. JDBC Basic Idea**
+
+* **Concept:** Java Database Connectivity (JDBC) is a Java API that defines how a Java application can interact with a database. It provides a standard way to connect to databases, execute SQL queries, and process the results.
+* **Importance:** Allows Java applications to be database-agnostic. You can switch between different database systems (MySQL, PostgreSQL, Oracle, etc.) with minimal changes to the application code, as long as you have the appropriate JDBC driver.
+* **Key Steps:**
+    1.  **Load the JDBC Driver:** Load the database-specific driver class into memory. (Less common with modern JDBC 4.0+ as drivers are automatically loaded).
+    2.  **Establish a Connection:** Get a connection to the database using the `DriverManager.getConnection()` method, providing the database URL, username, and password.
+    3.  **Create a Statement:** Create a `Statement`, `PreparedStatement`, or `CallableStatement` object to execute SQL queries.
+        * `Statement`: For simple, static SQL queries. Vulnerable to SQL injection if user input is directly concatenated.
+        * `PreparedStatement`: For parameterized queries. Pre-compiled by the database, more efficient for repeated execution, and prevents SQL injection.
+        * `CallableStatement`: For executing stored procedures.
+    4.  **Execute the Query:** Execute the SQL query using the `Statement` or `PreparedStatement` object's methods (`executeQuery()` for SELECT, `executeUpdate()` for INSERT, UPDATE, DELETE).
+    5.  **Process the Result:** If the query is a `SELECT`, process the results using a `ResultSet` object, which represents the table of data returned by the query.
+    6.  **Close Resources:** Close the `ResultSet`, `Statement`, and `Connection` objects in the `finally` block to release database resources.
+
+* **Basic Example (Fetching data):**
+
+    ```java
+    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.ResultSet;
+    import java.sql.SQLException;
+    import java.sql.Statement;
+
+    public class JdbcExample {
+        static final String JDBC_URL = "jdbc:mysql://localhost:3306/mydatabase";
+        static final String USER = "myuser";
+        static final String PASSWORD = "mypassword";
+
+        public static void main(String[] args) {
+            Connection conn = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                // 1. Load the JDBC Driver (less needed in modern Java)
+                // Class.forName("com.mysql.cj.jdbc.Driver");
+
+                // 2. Establish a Connection
+                conn = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
+
+                // 3. Create a Statement
+                stmt = conn.createStatement();
+
+                // 4. Execute the Query
+                String sql = "SELECT id, name, age FROM employees";
+                rs = stmt.executeQuery(sql);
+
+                // 5. Process the Result
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    int age = rs.getInt("age");
+                    System.out.println("ID: " + id + ", Name: " + name + ", Age: " + age);
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                // 6. Close Resources
+                try {
+                    if (rs != null) rs.close();
+                } catch (SQLException se2) {
+                    // Handle errors
+                }
+                try {
+                    if (stmt != null) stmt.close();
+                } catch (SQLException se2) {
+                    // Handle errors
+                }
+                try {
+                    if (conn != null) conn.close();
+                } catch (SQLException se) {
+                    se.printStackTrace();
+                }
+            }
+        }
+    }
+    ```
+
+* **Basic Example (Inserting data with `PreparedStatement`):**
+
+    ```java
+    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.PreparedStatement;
+    import java.sql.SQLException;
+
+    public class JdbcInsertExample {
+         static final String JDBC_URL = "jdbc:mysql://localhost:3306/mydatabase";
+         static final String USER = "myuser";
+         static final String PASSWORD = "mypassword";
+
+        public static void main(String[] args) {
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+
+            try {
+                conn = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
+
+                String sql = "INSERT INTO employees (name, age) VALUES (?, ?)"; // Use placeholders ?
+                pstmt = conn.prepareStatement(sql);
+
+                // Set values for the placeholders
+                pstmt.setString(1, "Bob");
+                pstmt.setInt(2, 25);
+
+                // Execute the update
+                int rowsAffected = pstmt.executeUpdate();
+                System.out.println(rowsAffected + " row(s) inserted.");
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (pstmt != null) pstmt.close();
+                } catch (SQLException se2) {
+                    // Handle errors
+                }
+                try {
+                    if (conn != null) conn.close();
+                } catch (SQLException se) {
+                    se.printStackTrace();
+                }
+            }
+        }
+    }
+    ```
+
+---
+
+**11. JPA With Hibernate (all JPA annotations, ORM, Diff between JPA and Hibernate, Relations)**
+
+* **ORM (Object-Relational Mapping):**
+    * **Concept:** A programming technique that maps objects in an object-oriented programming language (like Java) to tables in a relational database. It allows developers to interact with the database using object-oriented concepts (objects, classes, methods) instead of raw SQL queries.
+    * **Importance:**
+        * **Reduces Boilerplate Code:** Eliminates the need to write repetitive SQL code for CRUD (Create, Read, Update, Delete) operations.
+        * **Improved Productivity:** Developers can focus on business logic rather than database interactions.
+        * **Database Independence:** Can often switch between different databases with minimal changes to the ORM code.
+        * **Maintains Object Identity:** Handles the mapping between objects and database rows.
+
+* **JPA (Java Persistence API):**
+    * **Concept:** A Java specification or standard for accessing, persisting, and managing data between Java objects and a relational database. It defines a set of interfaces and annotations.
+    * **Importance:** Provides a standard API for ORM in Java. This means you can write your persistence code using the JPA standard and then use different JPA *implementations* (like Hibernate, EclipseLink, etc.) without changing your core code.
+    * **Annotations (Key JPA Annotations):**
+        * `@Entity`: Marks a class as a JPA entity, representing a table in the database.
+        * `@Table(name = "table_name")`: Specifies the database table name if it's different from the entity class name.
+        * `@Id`: Marks the primary key field of an entity.
+        * `@GeneratedValue(strategy = GenerationType.IDENTITY)`: Configures the primary key generation strategy (e.g., auto-increment). Other strategies include `AUTO`, `SEQUENCE`, `TABLE`.
+        * `@Column(name = "column_name", nullable = false, unique = true)`: Specifies the database column name if it's different from the field name, and other column properties (e.g., whether it can be null, if it's unique).
+        * `@Transient`: Marks a field that should not be persisted to the database.
+        * `@Enumerated(EnumType.STRING)` or `@Enumerated(EnumType.ORDINAL)`: Specifies how enum types should be persisted (as String names or integer ordinals).
+        * `@Temporal(TemporalType.DATE)` or `@Temporal(TemporalType.TIMESTAMP)`: Specifies how `java.util.Date` or `java.util.Calendar` fields should be mapped to database temporal types. (Modern JPA prefers `java.time` types, which don't need this).
+        * **Relationship Annotations:**
+            * `@OneToOne`: One-to-one relationship between two entities.
+            * `@OneToMany`: One-to-many relationship (one entity instance related to multiple instances of another entity).
+            * `@ManyToOne`: Many-to-one relationship (multiple entity instances related to one instance of another entity).
+            * `@ManyToMany`: Many-to-many relationship (multiple entity instances related to multiple instances of another entity).
+        * `@JoinColumn(name = "fk_column_name")`: Specifies the foreign key column in a relationship.
+        * `@ManyToMany` with `@JoinTable`: Used for many-to-many relationships to define the join table.
+        * `@Transactional`: (While not strictly a JPA annotation, it's often used with JPA frameworks like Spring Data JPA to manage transactions).
+
+* **Hibernate:**
+    * **Concept:** A popular, open-source ORM framework for Java. It is a *JPA implementation*. It provides its own API and features in addition to implementing the JPA specification.
+    * **Importance:** A mature and widely used ORM solution. Provides features beyond the JPA specification, such as caching, lazy loading optimizations, and a powerful query language (HQL - Hibernate Query Language and Criteria API).
+
+* **Difference between JPA and Hibernate:**
+    * **JPA:** A specification/standard. It defines the rules and interfaces for ORM. It's like a contract.
+    * **Hibernate:** An implementation of the JPA specification. It provides the actual code and functionality to perform ORM based on the JPA contract. It's like a product that fulfills the contract.
+    * **Analogy:** JPA is like the blueprint for a house (specifying what needs to be there), while Hibernate is the construction company that builds the house according to the blueprint.
+
+* **Relations (Mapping Database Relationships to Java Objects):**
+    * **One-to-One (`@OneToOne`):** Each instance of Entity A is associated with at most one instance of Entity B, and vice versa.
+        * **Example:** A `Person` can have one `Passport`, and a `Passport` belongs to one `Person`.
+
+        ```java
+        @Entity
+        class Person {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+
+            @OneToOne(mappedBy = "person", cascade = CascadeType.ALL) // mappedBy indicates the owning side
+            private Passport passport;
+
+            // Getters and setters
+        }
+
+        @Entity
+        class Passport {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String passportNumber;
+
+            @OneToOne
+            @JoinColumn(name = "person_id") // Foreign key in the Passport table
+            private Person person;
+
+            // Getters and setters
+        }
+        ```
+
+    * **One-to-Many (`@OneToMany`) / Many-to-One (`@ManyToOne`):** One instance of Entity A is associated with multiple instances of Entity B, but each instance of Entity B is associated with only one instance of Entity A. This is the most common relationship.
+        * **Example:** A `Department` has many `Employees`, but each `Employee` belongs to one `Department`.
+
+        ```java
+        @Entity
+        class Department {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+
+            @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+            private List<Employee> employees; // Use a collection for the 'many' side
+
+            // Getters and setters
+        }
+
+        @Entity
+        class Employee {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+
+            @ManyToOne // The 'many' side owns the relationship (has the foreign key)
+            @JoinColumn(name = "department_id") // Foreign key in the Employee table
+            private Department department;
+
+            // Getters and setters
+        }
+        ```
+
+    * **Many-to-Many (`@ManyToMany`):** Multiple instances of Entity A can be associated with multiple instances of Entity B, and vice versa. This typically requires a separate join table in the database.
+        * **Example:** A `Student` can enroll in many `Courses`, and a `Course` can have many `Students`.
+
+        ```java
+        @Entity
+        class Student {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+
+            @ManyToMany
+            @JoinTable(
+                name = "student_course", // Name of the join table
+                joinColumns = @JoinColumn(name = "student_id"), // Column in the join table referencing Student
+                inverseJoinColumns = @JoinColumn(name = "course_id") // Column in the join table referencing Course
+            )
+            private List<Course> courses;
+
+            // Getters and setters
+        }
+
+        @Entity
+        class Course {
+            @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String title;
+
+            @ManyToMany(mappedBy = "courses") // mappedBy indicates the owning side is in Student
+            private List<Student> students;
+
+            // Getters and setters
+        }
+        ```
+    * **Fetching Strategies (`Workspace` attribute in relationship annotations):**
+        * `WorkspaceType.LAZY`: The associated entity/collection is loaded only when it's accessed for the first time. This is the default for `@OneToMany` and `@ManyToMany`. Good for performance as it avoids loading unnecessary data.
+        * `WorkspaceType.EAGER`: The associated entity/collection is loaded immediately along with the primary entity. This is the default for `@OneToOne` and `@ManyToOne`. Can lead to performance issues if overused, as it might load large amounts of data.
+
+---
+
+**12. Spring core, Spring JPA, Spring JDBC, Spring AOP, Spring MVC, Spring Boot**
+
+The Spring Framework is a powerful and comprehensive framework for building enterprise Java applications. It provides various modules to simplify different aspects of application development.
+
+* **Spring Core:**
+    * **Concept:** The foundational module of the Spring Framework. It provides the Inversion of Control (IoC) container and Dependency Injection (DI).
+    * **Importance:**
+        * **IoC (Inversion of Control):** The framework takes control of creating and managing objects and their dependencies, rather than the application code doing it.
+        * **DI (Dependency Injection):** The container injects the required dependencies (objects) into a class, rather than the class creating or looking up its dependencies. This promotes loose coupling.
+        * **AOP (Aspect-Oriented Programming):** While Spring AOP is a separate module, Core provides the basic infrastructure for it.
+        * **Simplifies Configuration:** Uses configurations (XML, annotations, JavaConfig) to wire up components.
+    * **Key Concepts:**
+        * **Beans:** Objects managed by the Spring IoC container.
+        * **Bean Definitions:** Configuration metadata that tells the container how to create and configure beans.
+        * **IoC Container (`BeanFactory`, `ApplicationContext`):** The core of Spring, responsible for creating, configuring, and managing beans. `ApplicationContext` is more feature-rich and commonly used.
+        * **Dependency Injection:**
+            * **Constructor Injection:** Dependencies are provided through the class constructor.
+            * **Setter Injection:** Dependencies are provided through setter methods.
+            * **Field Injection:** Dependencies are injected directly into fields (less recommended for testability).
+    * **Annotations (Common Spring Core Annotations):**
+        * `@Component`: A generic stereotype annotation for any Spring-managed component.
+        * `@Service`: Specialization of `@Component` for service-layer classes.
+        * `@Repository`: Specialization of `@Component` for data access layer classes.
+        * `@Controller`: Specialization of `@Component` for controller classes in MVC applications.
+        * `@Autowired`: Used for automatic dependency injection (autowiring) by type.
+        * `@Qualifier("beanName")`: Used with `@Autowired` when there are multiple beans of the same type to specify which one to inject.
+        * `@Value("${property.name}")`: Injects values from property files.
+        * `@Scope("singleton")` or `@Scope("prototype")`: Defines the scope of a bean.
+
+* **Spring JPA / Spring Data JPA:**
+    * **Concept:** Provides integration with JPA. Spring Data JPA simplifies the development of JPA-based data access layers by providing a repository abstraction.
+    * **Importance:**
+        * **Reduced Boilerplate:** Eliminates the need to write concrete implementations for basic CRUD and query methods.
+        * **Convention over Configuration:** Provides automatic implementation of repository interfaces based on naming conventions.
+        * **Integration with JPA Providers:** Seamlessly integrates with JPA implementations like Hibernate.
+    * **Key Concepts:**
+        * **Repositories:** Interfaces that extend Spring Data JPA's `Repository`, `CrudRepository`, `PagingAndSortingRepository`, or `JpaRepository`.
+        * **Derived Query Methods:** You can define query methods in your repository interface based on method names (e.g., `findByLastNameAndFirstName(String lastName, String firstName)`). Spring Data JPA generates the SQL query automatically.
+        * `@Query` Annotation: Allows defining custom queries using JPQL (Java Persistence Query Language) or native SQL.
+    * **Example (Spring Data JPA Repository):**
+
+    ```java
+    import org.springframework.data.jpa.repository.JpaRepository;
+    import org.springframework.stereotype.Repository;
+
+    @Repository // Marks this as a Spring-managed repository
+    public interface UserRepository extends JpaRepository<User, Long> {
+        // Spring Data JPA automatically provides CRUD methods (save, findById, findAll, delete, etc.)
+
+        // Derived query method
+        List<User> findByLastName(String lastName);
+
+        // Custom query using @Query
+        @Query("SELECT u FROM User u WHERE u.email = ?1")
+        User findByEmailAddress(String email);
+    }
+    ```
+
+* **Spring JDBC:**
+    * **Concept:** Provides an abstraction layer over JDBC, simplifying database access using JDBC without dealing with low-level details like closing connections, statements, and result sets.
+    * **Importance:** Reduces boilerplate code compared to raw JDBC, handles resource management, and provides exception translation (converts database-specific exceptions to Spring's consistent data access exceptions).
+    * **Key Class:** `JdbcTemplate`: A central class for JDBC operations.
+    * **Example:**
+
+    ```java
+    import org.springframework.jdbc.core.JdbcTemplate;
+    import javax.sql.DataSource;
+    import java.util.List;
+
+    public class UserDao {
+        private JdbcTemplate jdbcTemplate;
+
+        public UserDao(DataSource dataSource) {
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+        }
+
+        public int countUsers() {
+            return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
+        }
+
+        public List<User> findAllUsers() {
+            return jdbcTemplate.query("SELECT id, name, email FROM users",
+                                      (rs, rowNum) -> new User(rs.getLong("id"), rs.getString("name"), rs.getString("email")));
+        }
+
+        public void addUser(User user) {
+            jdbcTemplate.update("INSERT INTO users (name, email) VALUES (?, ?)",
+                                user.getName(), user.getEmail());
+        }
+    }
+    ```
+
+* **Spring AOP (Aspect-Oriented Programming):**
+    * **Concept:** Provides a way to modularize cross-cutting concerns (like logging, security, transaction management) that are scattered across multiple parts of an application.
+    * **Importance:** Improves modularity by separating concerns, makes code easier to maintain and understand.
+    * **Key Concepts:**
+        * **Aspect:** A module that encapsulates cross-cutting concerns.
+        * **Join Point:** A specific point in the execution of the application (e.g., method execution, field access).
+        * **Advice:** The action taken by an aspect at a specific join point (e.g., logging before a method call, securing a method).
+        * **Pointcut:** A set of join points where an advice should be applied.
+        * **Weaving:** The process of applying aspects to target objects to create advised objects.
+    * **Advice Types:** `Before`, `AfterReturning`, `AfterThrowing`, `After` (finally), `Around`.
+    * **Example (Conceptual - using annotations):**
+
+    ```java
+    import org.aspectj.lang.annotation.Aspect;
+    import org.aspectj.lang.annotation.Before;
+    import org.springframework.stereotype.Component;
+
+    @Aspect // Marks this class as an Aspect
+    @Component // Makes it a Spring-managed bean
+    public class LoggingAspect {
+
+        // Define a pointcut for all methods in the com.example.service package
+        // @Pointcut("execution(* com.example.service.*.*(..))")
+        // private void serviceMethods() {}
+
+        // Apply Before advice to methods matching the pointcut
+        // @Before("serviceMethods()")
+        @Before("execution(* com.example.service.*.*(..))") // Inline pointcut
+        public void beforeServiceMethodExecution() {
+            System.out.println("Entering service method...");
+        }
+    }
+
+    // This aspect would be applied to methods in service classes,
+    // printing "Entering service method..." before they execute.
+    ```
+
+* **Spring MVC (Model-View-Controller):**
+    * **Concept:** A module within Spring that provides a framework for building web applications following the Model-View-Controller design pattern.
+    * **Importance:** Separates application logic into three interconnected parts, improving organization, maintainability, and testability of web applications.
+    * **Components:**
+        * **Model:** Represents the data of the application.
+        * **View:** Responsible for displaying the data to the user.
+        * **Controller:** Handles user input, interacts with the Model, and selects the appropriate View.
+        * **DispatcherServlet:** The front controller in Spring MVC, receiving incoming requests and directing them to the appropriate handler.
+    * **Annotations (Common Spring MVC Annotations):**
+        * `@Controller`: Marks a class as a controller.
+        * `@RequestMapping("/path")`: Maps web requests to specific handler methods in a controller.
+        * `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`: Specific annotations for handling HTTP GET, POST, PUT, and DELETE requests.
+        * `@RequestParam("paramName")`: Binds a web request parameter to a method parameter.
+        * `@PathVariable("variableName")`: Binds a variable from the URI path to a method parameter.
+        * `@RequestBody`: Binds the HTTP request body to a method parameter (often used with JSON or XML).
+        * `@ResponseBody`: Indicates that the return value of a method should be used as the HTTP response body (often used for REST APIs).
+        * `@RestController`: A convenience annotation that combines `@Controller` and `@ResponseBody`, typically used for building RESTful web services.
+        * `@ModelAttribute`: Binds a method parameter or method return value to a named model attribute.
+
+    * **Example (Simple Controller):**
+
+    ```java
+    import org.springframework.stereotype.Controller;
+    import org.springframework.ui.Model;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.RequestParam;
+
+    @Controller
+    @RequestMapping("/greeting")
+    public class GreetingController {
+
+        @GetMapping
+        public String greeting(@RequestParam(name="name", required=false, defaultValue="World") String name, Model model) {
+            model.addAttribute("name", name);
+            return "greeting"; // Returns the name of the view (e.g., greeting.jsp)
+        }
+    }
+    ```
+
+* **Spring Boot:**
+    * **Concept:** Builds upon the Spring Framework to make it easier to create stand-alone, production-ready Spring applications with minimal configuration.
+    * **Importance:**
+        * **Opinionated Setup:** Provides default configurations for many common scenarios, reducing the need for manual configuration.
+        * **Auto-configuration:** Automatically configures your Spring application based on the dependencies you have on the classpath.
+        * **Embedded Servers:** Allows packaging your application with an embedded web server (like Tomcat, Jetty, or Undertow), so you can run it as a simple JAR file.
+        * **Starter Dependencies:** Provides convenient dependency bundles (starters) that include all the necessary libraries for a particular feature (e.g., `spring-boot-starter-web`, `spring-boot-starter-data-jpa`).
+        * **Production-Ready Features:** Includes features like health checks, metrics, externalized configuration.
+    * **Key Annotations:**
+        * `@SpringBootApplication`: A convenience annotation that combines `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan`. Used on the main application class.
+    * **Example (Simple Spring Boot Application):**
+
+    ```java
+    import org.springframework.boot.SpringApplication;
+    import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+    @SpringBootApplication // Enables auto-configuration, component scanning, etc.
+    public class MyApplication {
+        public static void main(String[] args) {
+            SpringApplication.run(MyApplication.class, args); // Starts the Spring application
+        }
+    }
+
+    // You would then add other Spring components (Controllers, Services, Repositories)
+    // and Spring Boot would automatically configure and wire them up.
+    ```
+
+---
+
+**13. Microservices (Config Server, Eureka Server, API Gateway (Security JWT), Hystrix)**
+
+* **Microservices:**
+    * **Concept:** An architectural style that structures an application as a collection of small, independent, and loosely coupled services. Each service typically focuses on a specific business capability and can be developed, deployed, and scaled independently.
+    * **Importance:**
+        * **Scalability:** Services can be scaled independently based on their load.
+        * **Resilience:** Failure in one service is less likely to affect the entire application.
+        * **Technology Diversity:** Different services can use different technologies (programming languages, databases).
+        * **Easier Development and Deployment:** Smaller codebases are easier to understand, develop, and deploy.
+        * **Organizational Alignment:** Teams can be organized around specific services.
+
+* **Config Server (e.g., Spring Cloud Config Server):**
+    * **Purpose:** Centralizes the external configuration of microservices. Instead of each service having its own configuration files, they fetch their configuration from the Config Server.
+    * **Benefits:**
+        * **Centralized Management:** Easier to manage configurations across many services.
+        * **Dynamic Updates:** Configuration can be updated without restarting services (with features like refreshing).
+        * **Version Control:** Configurations can be stored in version control systems (like Git).
+
+* **Eureka Server (Service Discovery - e.g., Netflix Eureka):**
+    * **Purpose:** A service registry where microservices register themselves upon startup and discover other services.
+    * **Importance:**
+        * **Dynamic Location:** Services don't need to know the physical location (IP address, port) of other services. They can find them by their logical name through the Eureka Server.
+        * **Load Balancing:** Clients can get a list of available service instances from Eureka and use a load balancing strategy (like Round Robin) to distribute requests.
+        * **Resilience:** Eureka helps clients handle service instances going down or new instances coming up.
+
+* **API Gateway (e.g., Spring Cloud Gateway, Netflix Zuul):**
+    * **Purpose:** A single entry point for clients to access multiple microservices. It acts as a reverse proxy, routing client requests to the appropriate backend services.
+    * **Importance:**
+        * **Request Routing:** Directs incoming requests to the correct microservice.
+        * **Cross-Cutting Concerns:** Can handle common concerns like authentication, authorization, rate limiting, logging, and monitoring in a centralized place before requests reach the backend services.
+        * **Security (JWT - JSON Web Tokens):** An API Gateway is a common place to implement JWT validation.
+            * **JWT:** A compact, URL-safe means of representing claims to be transferred between two parties. Typically used for authentication and authorization. When a user logs in, the authentication service generates a JWT and sends it to the client. The client includes this JWT in subsequent requests to the API Gateway. The API Gateway can validate the JWT to verify the user's identity and permissions before forwarding the request to the appropriate microservice.
+
+* **Hystrix (Circuit Breaker - e.g., Netflix Hystrix, now deprecated in favor of Resilience4j):**
+    * **Purpose:** A library designed to control the interaction between services, providing latency and fault tolerance. It implements the Circuit Breaker pattern.
+    * **Importance:**
+        * **Prevents Cascading Failures:** If a service is slow or failing, Hystrix can prevent the calling service from being blocked indefinitely, thus preventing a chain reaction of failures.
+        * **Fallback Mechanisms:** Provides a way to define fallback responses when a service call fails.
+        * **Monitoring:** Collects metrics on service calls (successes, failures, latency).
+    * **Circuit Breaker Pattern:** An automatic switch that prevents an application from repeatedly trying to execute an operation that is likely to fail. When the circuit is "open," calls to the failing service are immediately returned with an error or a fallback response, without actually attempting the call. After a certain time, the circuit goes to a "half-open" state, allowing a limited number of test calls. If these calls succeed, the circuit closes; otherwise, it stays open.
+
+---
+
+**14. GIT Basic Commands**
+
+Git is a distributed version control system used for tracking changes in source code during software development.
+
+* **Basic Concepts:**
+    * **Repository:** A directory containing all the project files and the complete history of changes.
+    * **Commit:** A snapshot of the changes made to the repository at a specific point in time. Each commit has a unique hash.
+    * **Branch:** A lightweight movable pointer to a commit. Branches allow developers to work on different features or bug fixes concurrently without affecting the main codebase.
+    * **Master/Main Branch:** The default branch in a Git repository, typically representing the stable version of the project.
+    * **Staging Area (Index):** An intermediate area where you stage changes before committing them.
+    * **Working Directory:** The current files you are working on.
+
+* **Basic Commands:**
+
+    * **`git init`:** Initializes a new Git repository in the current directory.
+        ```bash
+        git init
+        ```
+    * **`git clone <repository_url>`:** Clones an existing Git repository from a remote location.
+        ```bash
+        git clone https://github.com/username/repository_name.git
+        ```
+    * **`git status`:** Shows the status of changes in the working directory and the staging area.
+        ```bash
+        git status
+        ```
+    * **`git add <file(s)>`:** Stages changes for the next commit. Use `.` to stage all changes.
+        ```bash
+        git add myfile.txt
+        git add .
+        ```
+    * **`git commit -m "commit message"`:** Records the staged changes to the repository with a descriptive message.
+        ```bash
+        git commit -m "Add initial project files"
+        ```
+    * **`git log`:** Shows the commit history.
+        ```bash
+        git log
+        git log --oneline  # Show a concise history
+        ```
+    * **`git diff`:** Shows the difference between the working directory and the staging area, or between commits.
+        ```bash
+        git diff          # Changes not staged
+        git diff --staged # Changes in the staging area
+        git diff commit1..commit2 # Differences between two commits
+        ```
+    * **`git branch`:** Lists local branches. Use a branch name to create a new branch.
+        ```bash
+        git branch
+        git branch new_feature
+        ```
+    * **`git checkout <branch_name>`:** Switches to a different branch.
+        ```bash
+        git checkout dev
+        git checkout -b new_branch # Create and switch to a new branch
+        ```
+    * **`git merge <branch_to_merge>`:** Merges changes from one branch into the current branch.
+        ```bash
+        git checkout master
+        git merge new_feature
+        ```
+    * **`git pull`:** Fetches changes from the remote repository and merges them into the current branch.
+        ```bash
+        git pull origin master
+        ```
+    * **`git push <remote_name> <branch_name>`:** Pushes local commits to a remote repository.
+        ```bash
+        git push origin master
+        ```
+    * **`git remote -v`:** Shows the remote repositories configured for your local repository.
+        ```bash
+        git remote -v
+        ```
+    * **`git remote add <remote_name> <repository_url>`:** Adds a new remote repository.
+        ```bash
+        git remote add origin https://github.com/username/repository_name.git
+        ```
+    * **`git rm <file(s)>`:** Removes files from the working directory and stages the deletion.
+        ```bash
+        git rm old_file.txt
+        ```
+    * **`git mv <old_name> <new_name>`:** Moves or renames a file.
+        ```bash
+        git mv old_name.txt new_name.txt
+        ```
+    * **`git stash`:** Temporarily saves changes you don't want to commit yet.
+        ```bash
+        git stash save "WIP: Working on feature X"
+        git stash list
+        git stash apply stash@{0} # Apply a stash
+        git stash drop stash@{0}  # Drop a stash
+        git stash pop            # Apply and drop the most recent stash
+        ```
+    * **`git tag <tag_name>`:** Creates a tag at the current commit.
+        ```bash
+        git tag v1.0
+        git tag -a v1.0 -m "Release version 1.0" # Annotated tag
+        git push origin v1.0 # Push tags to remote
+        ```
+    * **`git revert <commit_hash>`:** Creates a new commit that undoes the changes of a previous commit.
+        ```bash
+        git revert abc123
+        ```
+    * **`git reset <mode> <commit_hash>`:** Resets the current branch to a previous commit. Be cautious as this can discard changes.
+        * `--soft`: Moves the branch pointer, keeps changes staged.
+        * `--mixed` (default): Moves the branch pointer, unstages changes.
+        * `--hard`: Moves the branch pointer, discards changes in the working directory and staging area.
+        ```bash
+        git reset --hard HEAD~1 # Go back one commit, discarding changes
+        ```
+
+This comprehensive overview should provide a solid foundation for your evaluation. Remember to not just memorize definitions but understand the "why" and "how" behind each concept, and be able to provide relevant examples. Good luck!
